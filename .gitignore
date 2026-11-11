@@ -1,0 +1,13 @@
+# macOS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editor / temporary files
+*.swp
+*.swo
+*~
+
+# Julia local history
+.julia_history

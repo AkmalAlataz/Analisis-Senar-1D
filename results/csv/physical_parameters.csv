@@ -1,0 +1,7 @@
+parameter,value,unit,status
+L,0.658,m,pengukuran
+m,0.0225,kg,asumsi
+mu,0.03419452887537994,kg/m,turunan
+f1,328.501,Hz,FFT
+c,432.307316,m/s,turunan
+T,6390.60235259922,N,turunan
