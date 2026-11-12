@@ -11,3 +11,12 @@
 
 # Julia local history
 .julia_history
+
+# LaTeX intermediate files
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
