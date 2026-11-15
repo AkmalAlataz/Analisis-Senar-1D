@@ -11,11 +11,15 @@
 \usepackage{xurl} % for better url line breaking
 \usepackage[hidelinks]{hyperref} % for hyperlinks
 
+% Penanda untuk hal yang HARUS diperiksa penulis sebelum dikumpulkan.
+% Hapus penanda ini (dan isinya) setelah diperiksa.
+\newcommand{\periksa}[1]{\textcolor{red}{[PERIKSA: #1]}}
+
 % Header & Footer configuration
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{A.T. Azza'im}
-\fancyhead[R]{Random Walk Klasik dan Quantum Walk}
+\fancyhead[R]{Analisis Gelombang pada Senar Gitar Nada E}
 \renewcommand{\thesection}{\Roman{section}}
 \setcounter{secnumdepth}{3}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -26,26 +30,46 @@
     \fancyfoot[C]{\thepage}
 }
 
-% Code snippet configuration (Jupyter Notebook style)
-\lstdefinestyle{jupyter}{
-    backgroundcolor=\color{gray!10},
-    commentstyle=\color{green!50!black},
-    keywordstyle=\color{blue},
-    numberstyle=\tiny\color{gray},
-    stringstyle=\color{red},
-    basicstyle=\ttfamily\footnotesize,
-    numbers=left,
-    numbersep=8pt,
-    breaklines=true,
-    frame=single,
-    language=Python
-}
-
 \begin{document}
 
-\title{Perbandingan Random Walk Klasik dan Quantum Walk}
+\title{Analisis Gelombang pada Senar Gitar Nada E melalui Pengukuran Audio dan Simulasi Beda Hingga}
 \author{\textbf{Akmal Taqiyyuddin Azza'im}\\
     \normalsize Program Studi Magister Fisika, Departemen Fisika, Fakultas Matematika dan Ilmu Pengetahuan Alam, Universitas Gadjah Mada\\}
+
+\begin{abstract}
+Kajian ini bertujuan mengestimasi parameter fisis senar gitar
+melalui analisis rekaman audio serta mempelajari evolusi
+gelombang menggunakan simulasi numerik persamaan gelombang
+satu dimensi. Frekuensi fundamental diidentifikasi dari tiga
+petikan senar menggunakan Transformasi Fourier Cepat (FFT)
+dengan fungsi jendela Hann, menghasilkan frekuensi rata-rata
+sebesar $328{,}501\,\mathrm{Hz}$. Berdasarkan panjang senar
+$0{,}658\,\mathrm{m}$ dan asumsi massa sebesar $22{,}5\,\mathrm{g}$,
+diperoleh estimasi massa jenis linear
+$0{,}03419\,\mathrm{kg/m}$, cepat rambat gelombang
+$432{,}31\,\mathrm{m/s}$, dan tegangan
+$6{,}391\times10^3\,\mathrm{N}$. Persamaan gelombang
+diselesaikan menggunakan metode beda hingga eksplisit.
+Pengujian kestabilan menunjukkan bahwa skema stabil untuk
+faktor Courant $r=0{,}80$ dan $r=1{,}00$, sedangkan
+$r=1{,}05$ menghasilkan solusi tidak stabil. Pengujian
+konvergensi dengan solusi analitik menghasilkan orde
+konvergensi rata-rata sebesar $1{,}995$. Penambahan redaman
+dengan $\gamma=15\,\mathrm{s}^{-1}$ menyebabkan energi
+ternormalisasi pada akhir simulasi tersisa sekitar $4{,}97\%$
+dari energi awal, dibandingkan $99{,}70\%$ pada kondisi
+tanpa redaman. Hasil ini menunjukkan bahwa metode beda
+hingga dapat digunakan untuk menganalisis kestabilan,
+konvergensi, dan dinamika gelombang teredam pada senar.
+Nilai $\mu$ dan $T$ merupakan konsekuensi dari asumsi massa
+dan belum divalidasi secara independen, sedangkan $c$ dan
+seluruh hasil numerik hanya bergantung pada $L$ dan $f_1$.
+
+$\quad$
+
+\noindent\textbf{Kata kunci:} senar gitar, persamaan gelombang, metode beda hingga, kestabilan CFL, redaman.
+\end{abstract}
+
 \maketitle
 
 \section{Pendahuluan}
@@ -126,6 +150,7 @@
             \label{eq:damped-wave-equation}
         \end{equation}
         dengan $\gamma$ merupakan koefisien redaman yang memiliki satuan $\mathrm{s}^{-1}$. 
+        Parameter ini merangkum peredaman efektif secara keseluruhan, tidak hanya gesekan udara.
         Ketika $\gamma=0$, persamaan tersebut kembali menjadi persamaan gelombang tanpa redaman.
 
     \subsection{Kondisi Awal dan Kondisi Batas}
@@ -136,7 +161,7 @@
             y(0,t)=y(L,t)=0.
             \label{eq:boundary-condition}
         \end{equation}
-        Simulasi dimulai dari profil simpangan awal berbentuk segitiga dengan amplitudo maksimum $h$ pada posisi $x=x_p$. 
+        Simulasi dimulai dari profil simpangan awal berbentuk segitiga dengan amplitudo maksimum $h$ pada posisi $x=x_p=0{,}2L$. 
         Profil tersebut dinyatakan sebagai
         \begin{equation}
             y(x,0)=f(x)=
@@ -155,9 +180,11 @@
             \label{eq:initial-velocity}
         \end{equation}
         Profil awal segitiga digunakan untuk merepresentasikan simpangan senar setelah diberi petikan. 
-        Dalam simulasi, amplitudo awal ditetapkan sebesar $h=10^{-3}\,\mathrm{m}$.
+        Amplitudo awal ditetapkan sebesar $h=10^{-3}\,\mathrm{m}$ sebagai nilai simulasi; nilai ini bukan hasil pengukuran. 
+        Dengan $x_p=0{,}2L=0{,}1316\,\mathrm{m}$, kemiringan maksimum profil awal adalah $h/x_p\approx7{,}6\times10^{-3}\ll1$, sehingga asumsi simpangan kecil (kemiringan senar kecil, tegangan dianggap konstan) layak digunakan.
 
     \subsection{Estimasi Parameter Fisis Senar}
+    \label{sec:estimasi-parameter}
 
     Parameter fisis senar ditentukan berdasarkan panjang senar, frekuensi fundamental hasil analisis rekaman audio, serta estimasi massa senar. 
     Massa jenis linear dihitung menggunakan
@@ -167,13 +194,13 @@
     \end{equation}
     sedangkan tegangan senar diperoleh dengan menggabungkan Persamaan~\eqref{eq:wave-speed} dan Persamaan~\eqref{eq:wave-speed-estimation}, yaitu
     \begin{equation}
-        T = \mu(2Lf_1)^2.
+        T = \mu(2Lf_1)^2 = 4mLf_1^2.
         \label{eq:string-tension}
     \end{equation}
-    Panjang bebas senar hasil pengukuran adalah $L=(0{,}658\pm0{,}001)\,\mathrm{m}$. 
+    Panjang bebas senar diukur dengan meteran dari ujung bebas ke ujung bebas (senar tidak ditekan) dengan ketidakpastian $0{,}1\,\mathrm{cm}$, sehingga $L=(0{,}658\pm0{,}001)\,\mathrm{m}$. 
     Frekuensi fundamental diperoleh dari rata-rata tiga pengukuran petikan. 
-    Massa senar tidak diukur secara langsung, melainkan diasumsikan sebesar $22{,}5\,\mathrm{g}$ untuk panjang senar tersebut, dengan rentang asumsi $22$--$23\,\mathrm{g}$.
-    Dengan menggunakan parameter tersebut, diperoleh estimasi besaran fisis sebagaimana ditunjukkan pada Tabel~\ref{tab:physical-parameters}.
+    Massa senar tidak diukur secara langsung; massa $22{,}5\,\mathrm{g}$ (rentang asumsi $22$--$23\,\mathrm{g}$) diambil sebagai nilai asumsi berdasarkan referensi, sebagaimana diperbolehkan pada ketentuan tugas.
+    Hasil perhitungan ditunjukkan pada Tabel~\ref{tab:physical-parameters}.
 
     \begin{table}[htbp]
         \centering
@@ -185,7 +212,7 @@
             \hline
             $L$ &
             $(0{,}658\pm0{,}001)\,\mathrm{m}$ &
-            Pengukuran \\
+            Pengukuran (meteran) \\
 
             $f_1$ &
             $328{,}501\,\mathrm{Hz}$ &
@@ -197,76 +224,102 @@
 
             $\mu$ &
             $(0{,}03419\pm0{,}00044)\,\mathrm{kg/m}$ &
-            Hasil perhitungan \\
+            Perhitungan (dari asumsi $m$) \\
 
             $c$ &
-            $(432{,}31\pm0{,}66)\,\mathrm{m/s}$ &
-            Hasil perhitungan \\
+            $(432{,}3\pm0{,}8)\,\mathrm{m/s}$ &
+            Perhitungan ($L$, $f_1$) \\
 
             $T$ &
             $(6{,}391\pm0{,}083)\times10^3\,\mathrm{N}$ &
-            Hasil perhitungan \\
+            Perhitungan (dari asumsi $m$) \\
             \hline
         \end{tabular}
     \end{table}
 
-    Ketidakpastian massa dihitung dengan mengasumsikan distribusi seragam pada rentang $22$--$23\,\mathrm{g}$. 
-    Ketidakpastian parameter turunan diperoleh melalui propagasi ketidakpastian dari besaran yang digunakan dalam perhitungannya. 
-    Nilai frekuensi pada tabel merupakan rata-rata hasil interpolasi puncak spektrum dari tiga petikan. 
-    Resolusi frekuensi nominal FFT tetap sebesar $1\,\mathrm{Hz}$, sehingga hasil interpolasi tersebut tidak serta-merta menunjukkan ketelitian spektral sebesar ketidakpastian pengulangan pengukuran.
+    Ketidakpastian massa dihitung dengan distribusi seragam pada rentang $22$--$23\,\mathrm{g}$, yaitu $\sigma_m=1\,\mathrm{g}/\sqrt{12}\approx0{,}29\,\mathrm{g}$. 
+    Ketidakpastian frekuensi menggabungkan simpangan baku antarpetikan ($0{,}023\,\mathrm{Hz}$) dan resolusi FFT ($\Delta f/\sqrt{12}\approx0{,}29\,\mathrm{Hz}$) secara kuadratik, sehingga $\sigma_{f}\approx0{,}29\,\mathrm{Hz}$ dan didominasi oleh resolusi spektral. 
+    Karena $\mu=m/L$, besaran $\mu$ dan $L$ tidak independen. 
+    Untuk menghindari penghitungan ganda $L$, $\sigma_T$ dihitung dari $T=4mLf_1^2$ dengan $m$, $L$, dan $f_1$ diperlakukan independen:
+    \begin{align}
+        \left(\frac{\sigma_c}{c}\right)^2 &\simeq \left(\frac{\sigma_L}{L}\right)^2+\left(\frac{\sigma_f}{f_1}\right)^2,\\
+        \left(\frac{\sigma_T}{T}\right)^2 &\simeq \left(\frac{\sigma_m}{m}\right)^2+\left(\frac{\sigma_L}{L}\right)^2+4\left(\frac{\sigma_f}{f_1}\right)^2,
+        \label{eq:uncertainty-T}
+    \end{align}
+    dan $(\sigma_\mu/\mu)^2\simeq(\sigma_m/m)^2+(\sigma_L/L)^2$. 
+    Ketidakpastian ini hanya mencakup komponen acak yang disebut di atas; galat sistematik akibat asumsi massa tidak tercakup dan dibahas pada Bagian~\ref{sec:diskusi}.
 
 \section{Eksperimen dan Analisis Sinyal}
 \label{sec:eksperimen}
 
     \subsection{Pengaturan Eksperimen}
 
-        Eksperimen dilakukan menggunakan senar gitar dengan panjang bebas sebesar $L=0{,}658\,\mathrm{m}$. 
-        Senar diberikan tiga petikan secara terpisah pada posisi sekitar $0{,}2L$.
-        Setiap petikan direkam untuk memperoleh sinyal audio yang digunakan dalam analisis frekuensi.
-        Panjang bebas senar diukur menggunakan \textit{[jenis alat ukur yang digunakan]}, sedangkan suara senar direkam menggunakan \textit{[perangkat perekam dan mikrofon yang digunakan]}. 
-        Rekaman disimpan dalam format WAV dengan frekuensi sampling sebesar $f_s=44{,}1\,\mathrm{kHz}$.
+        Eksperimen dilakukan menggunakan senar gitar dengan panjang bebas $L=0{,}658\,\mathrm{m}$, diukur dengan meteran dari ujung bebas ke ujung bebas tanpa menekan senar (ketidakpastian $0{,}1\,\mathrm{cm}$). 
+        Senar dipetik tiga kali secara terpisah pada posisi sekitar $0{,}2L\approx13{,}2\,\mathrm{cm}$ dari salah satu ujung, dengan ketidakpastian posisi $0{,}1\,\mathrm{cm}$.
+        Suara senar direkam menggunakan mikrofon kecil yang diletakkan sekitar $10\,\mathrm{cm}$ dari senar. 
+        Rekaman disimpan dalam format WAV dengan frekuensi sampling $f_s=44{,}1\,\mathrm{kHz}$, berisi $900\,096$ sampel dengan durasi total $20{,}41\,\mathrm{s}$ yang memuat ketiga petikan.
+        Susunan eksperimen ditunjukkan pada Gambar~\ref{fig:experimental-setup}, dan bentuk gelombang hasil rekaman pada Gambar~\ref{fig:waveform-rekaman}.
+        \begin{figure}[htbp]
+            \centering
+            \includegraphics[width=0.35\textwidth]
+            {../data/eksperimen/foto_setup.jpg}
+            \caption{Dokumentasi susunan eksperimen pengukuran
+            dan perekaman senar gitar.}
+            \label{fig:experimental-setup}
+        \end{figure}
         \begin{figure}[htbp]
             \centering
             \includegraphics[width=0.5\textwidth]
             {../results/figures/waveform_rekaman.png}
             \caption{Bentuk gelombang sinyal audio hasil perekaman
-            tiga petikan senar gitar.}
+            tiga petikan senar gitar ($f_s=44{,}1\,\mathrm{kHz}$, durasi $20{,}41\,\mathrm{s}$).}
             \label{fig:waveform-rekaman}
         \end{figure}
 
     \subsection{Pengolahan Rekaman Audio}
 
-        Rekaman audio terlebih dahulu dibagi menjadi tiga bagian yang masing-masing merepresentasikan satu petikan. 
-        Posisi waktu setiap petikan ditentukan dengan mengamati perubahan nilai \textit{Root Mean Square} (RMS) sinyal menggunakan jendela waktu sebesar $10\,\mathrm{ms}$. 
-        Puncak RMS digunakan sebagai acuan untuk memilih bagian sinyal yang akan dianalisis.
-
-        Untuk setiap petikan, dipilih segmen berdurasi $1\,\mathrm{s}$ setelah puncak RMS terdeteksi. 
-        Nilai rata-rata sinyal pada setiap segmen dikurangi untuk menghilangkan komponen DC. 
-        Selanjutnya, sinyal dikalikan dengan fungsi jendela Hann sebelum dilakukan transformasi Fourier. 
-        Penggunaan fungsi jendela bertujuan mengurangi kebocoran spektral (\textit{spectral leakage}) akibat pemotongan sinyal pada interval waktu terbatas \cite{Harris1978}.
-
-        Transformasi Fourier diskret dihitung menggunakan FFT.
-        Untuk jumlah sampel $N$, resolusi frekuensi nominal
-        ditentukan oleh
+        Rekaman audio dibagi menjadi tiga bagian yang masing-masing merepresentasikan satu petikan. 
+        Posisi waktu setiap petikan ditentukan dari puncak \textit{Root Mean Square} (RMS) dengan jendela $10\,\mathrm{ms}$, yaitu pada $2{,}73$, $7{,}91$, dan $12{,}78\,\mathrm{s}$.
+        Untuk setiap petikan dipilih segmen berdurasi $1\,\mathrm{s}$ yang dimulai $0{,}05\,\mathrm{s}$ setelah puncak RMS. 
+        Nilai rata-rata sinyal pada segmen dikurangi untuk menghilangkan komponen DC, kemudian sinyal dikalikan jendela Hann sebelum FFT untuk mengurangi kebocoran spektral \cite{Harris1978}.
+        Untuk $N$ sampel, resolusi frekuensi nominal adalah
         \begin{equation}
-            \Delta f = \frac{f_s}{N}.
+            \Delta f = \frac{f_s}{N},
             \label{eq:frequency-resolution}
         \end{equation}
-        Dengan durasi segmen sebesar $1\,\mathrm{s}$ dan $f_s=44{,}1\,\mathrm{kHz}$, diperoleh $N=44100$ sampel sehingga resolusi frekuensi nominal sebesar $\Delta f=1\,\mathrm{Hz}$.
+        sehingga untuk $N=44100$ diperoleh $\Delta f=1\,\mathrm{Hz}$.
 
     \subsection{Identifikasi Frekuensi Fundamental}
 
-        Frekuensi fundamental ditentukan berdasarkan pola harmonik pada spektrum frekuensi. 
-        Untuk senar ideal yang kedua ujungnya terikat, frekuensi harmonik memenuhi hubungan
+        Untuk senar ideal dengan kedua ujung terikat, frekuensi harmonik memenuhi
         \begin{equation}
             f_n = n f_1,
-            \qquad n=1,2,3,\ldots,
+            \qquad n=1,2,3,\ldots
             \label{eq:harmonic-frequency}
         \end{equation}
-        Oleh karena itu, identifikasi frekuensi fundamental tidak hanya didasarkan pada puncak spektrum dengan amplitudo terbesar, tetapi juga pada kesesuaian puncak-puncak lainnya terhadap kelipatan frekuensi tersebut.
+        Karena itu, fundamental ditentukan dari kesesuaian pola harmonik, bukan semata dari puncak tertinggi. 
+        Pada ketiga petikan, puncak tertinggi adalah $\approx328{,}5\,\mathrm{Hz}$, tetapi puncak harmonik kedua juga besar (amplitudo relatif $0{,}78$--$0{,}94$). 
+        Tabel~\ref{tab:harmonics} menunjukkan bahwa enam puncak pertama memenuhi pola kelipatan bulat dari $328{,}5\,\mathrm{Hz}$: nilai $f_n/n$ berada pada $328{,}48$--$328{,}53\,\mathrm{Hz}$, dengan selisih sekitar $0{,}05\,\mathrm{Hz}$, jauh di bawah $\Delta f=1\,\mathrm{Hz}$. 
+        Dengan demikian inharmonisitas akibat kekakuan senar, $f_n=nf_1\sqrt{1+Bn^2}$, tidak terdeteksi pada resolusi ini.
+        \begin{table}[htbp]
+            \centering
+            \caption{Harmonik hasil FFT (rata-rata puncak terdeteksi pada tiga petikan; harmonik ke-4 hanya dari petikan 2 dan 3).}
+            \label{tab:harmonics}
+            \begin{tabular}{ccc}
+                \hline
+                $n$ & $\bar f_n$ (Hz) & $\bar f_n/n$ (Hz) \\
+                \hline
+                1 & 328{,}501 & 328{,}501 \\
+                2 & 657{,}042 & 328{,}521 \\
+                3 & 985{,}491 & 328{,}497 \\
+                4 & 1313{,}936 & 328{,}484 \\
+                5 & 1642{,}426 & 328{,}485 \\
+                6 & 1971{,}175 & 328{,}529 \\
+                \hline
+            \end{tabular}
+        \end{table}
 
-        Hasil analisis menunjukkan adanya pola harmonik dengan frekuensi dasar sekitar $328{,}5\,\mathrm{Hz}$. 
-        Estimasi frekuensi fundamental dari ketiga petikan ditampilkan pada Tabel~\ref{tab:fundamental-frequency}.
+        Estimasi $f_1$ dari ketiga petikan ditampilkan pada Tabel~\ref{tab:fundamental-frequency}, diperoleh dari interpolasi puncak spektrum di sekitar bin maksimum.
         \begin{table}[htbp]
             \centering
             \caption{Estimasi frekuensi fundamental dari tiga petikan.}
@@ -284,129 +337,117 @@
                 \hline
             \end{tabular}
         \end{table}
-        Estimasi frekuensi pada tabel diperoleh melalui interpolasi puncak spektrum di sekitar bin frekuensi maksimum.
-        Rata-rata ketiga hasil pengukuran adalah $\bar{f}_1=328{,}501\,\mathrm{Hz}$ dengan simpangan baku sebesar $0{,}023\,\mathrm{Hz}$. 
-        Nilai ini menunjukkan konsistensi hasil estimasi dari ketiga petikan.
-
-        Namun, simpangan baku tersebut menggambarkan variasi antarpetikan, bukan resolusi frekuensi FFT.
-        Resolusi frekuensi nominal tetap sebesar $1\,\mathrm{Hz}$.
-        Dengan demikian, angka desimal pada hasil interpolasi digunakan untuk membandingkan estimasi puncak spektrum, dan tidak dapat langsung diartikan sebagai ketelitian absolut pengukuran.
+        Rata-rata ketiga hasil adalah $\bar{f}_1=328{,}501\,\mathrm{Hz}$ dengan simpangan baku $0{,}023\,\mathrm{Hz}$ (galat baku $0{,}013\,\mathrm{Hz}$). 
+        Simpangan baku ini menggambarkan variasi antarpetikan, bukan ketelitian absolut: resolusi nominal FFT tetap $1\,\mathrm{Hz}$, sehingga angka desimal hasil interpolasi hanya dipakai untuk membandingkan puncak antarpetikan. 
+        Spektrum ketiga petikan dibandingkan pada Gambar~\ref{fig:perbandingan-fft}.
         \begin{figure}[htbp]
             \centering
             \includegraphics[width=0.5\textwidth]
             {../results/figures/perbandingan_FFT.png}
-            \caption{Perbandingan spektrum frekuensi dari ketiga
-            petikan senar gitar.}
+            \caption{Perbandingan spektrum frekuensi (amplitudo relatif) dari ketiga
+            petikan senar gitar; $\Delta f=1\,\mathrm{Hz}$, jendela Hann.}
             \label{fig:perbandingan-fft}
         \end{figure}
-        Selain kelompok puncak harmonik yang berpusat pada frekuensi fundamental, spektrum juga menunjukkan komponen di sekitar $110\,\mathrm{Hz}$ dan kelipatannya. 
-        Komponen tersebut tidak mengikuti pola harmonik dari $328{,}5\,\mathrm{Hz}$ sehingga tidak digunakan dalam penentuan frekuensi fundamental.
-        Sumber komponen tersebut belum dapat dipastikan dari analisis rekaman ini.
+
+        Spektrum juga memuat puncak pada $\approx110{,}2\,\mathrm{Hz}$ (amplitudo relatif $0{,}39$--$0{,}46$) dan $\approx220\,\mathrm{Hz}$. 
+        Nilai ini bukan kelipatan bulat dari $328{,}5\,\mathrm{Hz}$ ($328{,}5/3=109{,}5\,\mathrm{Hz}$), sehingga tidak dipakai untuk menentukan $f_1$. 
+        Sumber komponen ini belum dapat dipastikan dari rekaman; kemungkinannya adalah getaran simpatetik senar lain atau resonansi badan/udara gitar, dan hal tersebut belum diuji.
 
 \section{Metode Numerik}
 \label{sec:metode-numerik}
 
     \subsection{Diskretisasi Persamaan Gelombang}
 
-        Persamaan gelombang diselesaikan menggunakan metode beda hingga eksplisit dengan pendekatan beda pusat terhadap turunan ruang dan waktu \cite{LeVeque2007}. 
-        Domain ruang dibagi menjadi $N_x$ interval dengan jarak antartitik $\Delta x=L/N_x$, sedangkan domain waktu didiskretisasi dengan langkah waktu $\Delta t$. Posisi dan waktu diskret dinyatakan sebagai
+        Persamaan gelombang diselesaikan menggunakan metode beda hingga eksplisit dengan beda pusat terhadap turunan ruang dan waktu \cite{LeVeque2007}. 
+        Domain ruang dibagi menjadi $N_x$ interval dengan $\Delta x=L/N_x$, dan waktu didiskretisasi dengan langkah $\Delta t$:
         \begin{equation}
             x_i=i\Delta x, \qquad t_n=n\Delta t,
         \end{equation}
-        dengan $i=0,1,\ldots,N_x$ dan $n=0,1,\ldots,N_t$.
-        Simpangan pada posisi $x_i$ dan waktu $t_n$ dituliskan sebagai $y_i^n$.
-
-        Turunan kedua terhadap waktu dan ruang didekati dengan
+        dengan $i=0,\ldots,N_x$ dan $n=0,\ldots,N_t$, serta $y_i^n\approx y(x_i,t_n)$.
+        Turunan kedua didekati dengan
         \begin{equation}
             \frac{\partial^2 y}{\partial t^2} \approx \frac{y_i^{n+1}-2y_i^n+y_i^{n-1}}{\Delta t^2},
+            \quad
+            \frac{\partial^2 y}{\partial x^2} \approx \frac{y_{i+1}^n-2y_i^n+y_{i-1}^n}{\Delta x^2},
         \end{equation}
-
-        \begin{equation}
-            \frac{\partial^2 y}{\partial x^2} \approx \frac{y_{i+1}^n-2y_i^n+y_{i-1}^n}{\Delta x^2}.
-        \end{equation}
-
-        Dengan mensubstitusikan pendekatan tersebut ke dalam Persamaan~\eqref{eq:wave-equation}, diperoleh skema numerik
+        yang keduanya berorde dua dalam $\Delta t$ dan $\Delta x$. 
+        Substitusi ke Persamaan~\eqref{eq:wave-equation} memberikan
         \begin{equation}
             y_i^{n+1} = 2y_i^n-y_i^{n-1} +r^2 \left( y_{i+1}^n-2y_i^n+y_{i-1}^n \right),
             \label{eq:fd-wave}
         \end{equation}
-        dengan faktor Courant didefinisikan sebagai
+        dengan faktor Courant
         \begin{equation}
             r=\frac{c\Delta t}{\Delta x}.
             \label{eq:courant}
         \end{equation}
-        Kondisi batas tetap diterapkan pada setiap langkah waktu dengan menetapkan
-        \begin{equation}
-            y_0^n=y_{N_x}^n=0.
-        \end{equation}
+        Kondisi batas diterapkan pada setiap langkah waktu: $y_0^n=y_{N_x}^n=0$.
 
     \subsection{Implementasi Kondisi Awal}
 
-        Skema pada Persamaan~\eqref{eq:fd-wave} membutuhkan dua tingkat waktu awal, yaitu $y_i^0$ dan $y_i^1$. 
-        Nilai $y_i^0$ diperoleh dari profil simpangan awal, sedangkan $y_i^1$ dihitung menggunakan ekspansi Taylor terhadap waktu,
+        Skema Persamaan~\eqref{eq:fd-wave} memerlukan $y_i^0$ dan $y_i^1$. 
+        Nilai $y_i^0$ berasal dari profil awal, sedangkan $y_i^1$ dari ekspansi Taylor,
         \begin{equation}
             y(x,\Delta t) = y(x,0) + \Delta t \left.\frac{\partial y}{\partial t}\right|_{t=0} + \frac{\Delta t^2}{2} \left.\frac{\partial^2 y}{\partial t^2}\right|_{t=0} + \mathcal{O}(\Delta t^3).
         \end{equation}
-        Berdasarkan persamaan gelombang dan kondisi kecepatan awal nol, diperoleh pendekatan langkah waktu pertama
+        Dengan kecepatan awal nol dan $y_{tt}=c^2y_{xx}$ pada $t=0$,
         \begin{equation}
             y_i^1 = y_i^0+ \frac{r^2}{2} \left( y_{i+1}^0-2y_i^0+y_{i-1}^0 \right).
             \label{eq:first-time-step}
         \end{equation}
-        Persamaan~\eqref{eq:first-time-step} digunakan untuk menginisialisasi simulasi sebelum skema beda hingga dijalankan secara iteratif.
+        Bentuk umum untuk $y_t(x,0)=g(x)\neq0$ dan untuk kasus teredam diturunkan pada Lampiran~\ref{app:first-step}.
 
     \subsection{Analisis Kestabilan dan Dispersi Numerik}
 
-        Kestabilan skema beda hingga dianalisis menggunakan pendekatan Fourier dengan mengasumsikan solusi berbentuk gelombang diskret
-        \begin{equation}
-            y_i^n=G^n e^{\mathrm{i}k x_i},
-        \end{equation}
-        dengan $G$ merupakan faktor amplifikasi dan $k$ adalah bilangan gelombang.
-        Substitusi bentuk tersebut ke dalam Persamaan~\eqref{eq:fd-wave} menghasilkan
+        Dengan ansatz Fourier $y_i^n=G^n e^{\mathrm{i}k x_i}$, Persamaan~\eqref{eq:fd-wave} menghasilkan
         \begin{equation}
             G^2 - 2\left[ 1-2r^2\sin^2\left(\frac{k\Delta x}{2}\right) \right] G+1=0.
+            \label{eq:amplification}
         \end{equation}
-        Dengan menyatakan $G=e^{-\mathrm{i}\omega_{\mathrm{num}} \Delta t}$, diperoleh relasi dispersi numerik
+        Karena hasil kali kedua akar sama dengan 1, kondisi $|G|\leq1$ untuk semua $k$ hanya terpenuhi jika kedua akar kompleks dengan $|G|=1$, yang setara dengan
         \begin{equation}
-            \sin^2 \left( \frac{\omega_{\mathrm{num}}\Delta t}{2} \right) = r^2\sin^2\left(\frac{k\Delta x}{2}\right),
-            \label{eq:numerical-dispersion}
-        \end{equation}
-        dengan $\omega_{\mathrm{num}}$ merupakan frekuensi sudut numerik. 
-        Agar faktor amplifikasi tidak bertambah tanpa batas, syarat kestabilan skema adalah
-        \begin{equation}
-            0\leq r\leq 1.
+            0\leq r\leq 1
             \label{eq:cfl-condition}
         \end{equation}
-        Relasi dispersi pada Persamaan~\eqref{eq:numerical-dispersion} juga menunjukkan bahwa kecepatan fase numerik dapat berbeda dari kecepatan fase gelombang kontinu. 
-        Untuk $r=1$, skema ini tidak mengalami dispersi fase pada rentang bilangan gelombang yang terwakili oleh grid.
-        Sebaliknya, untuk $r<1$, kecepatan fase numerik bergantung pada bilangan gelombang sehingga dapat terjadi dispersi numerik.
+        (syarat CFL \cite{CFL1928,Strikwerda2004}; bukti pada Lampiran~\ref{app:cfl}). 
+        Untuk $r>1$, mode dengan $k\Delta x=\pi$ memiliki akar real dengan $|G|>1$ dan tumbuh tanpa batas; untuk $r=1{,}05$, faktor pertumbuhan maksimum per langkah adalah $|G|_{\max}\approx1{,}88$.
+        Dengan $G=e^{-\mathrm{i}\omega_{\mathrm{num}}\Delta t}$ diperoleh relasi dispersi numerik
+        \begin{equation}
+            \sin^2 \left( \frac{\omega_{\mathrm{num}}\Delta t}{2} \right) = r^2\sin^2\left(\frac{k\Delta x}{2}\right).
+            \label{eq:numerical-dispersion}
+        \end{equation}
+        Untuk $r=1$, $\omega_{\mathrm{num}}=ck$ untuk semua $k$ yang terwakili grid, sehingga tidak ada galat fase. 
+        Untuk $r<1$ dan $k\Delta x\ll1$, ekspansi Persamaan~\eqref{eq:numerical-dispersion} memberikan
+        \begin{equation}
+            \omega_{\mathrm{num}}\approx ck\left[1-\frac{(1-r^2)(k\Delta x)^2}{24}\right],
+            \label{eq:phase-error}
+        \end{equation}
+        yaitu kecepatan fase numerik lebih kecil daripada $c$ dan semakin kecil untuk $k$ besar (dispersi numerik).
 
-        Pengujian kestabilan dilakukan dengan menggunakan $N_x=100$ dan tiga variasi faktor Courant, yaitu $r=0{,}80$, $r=1{,}00$, dan $r=1{,}05$. 
-        Simulasi dijalankan hingga waktu sekitar $2L/c$ dengan pengamatan profil gelombang pada waktu $L/(2c)$ dan $L/c$.
-        Untuk mendeteksi pertumbuhan solusi yang tidak stabil, amplitudo maksimum dipantau pada setiap langkah waktu.
-        Simulasi dihentikan apabila nilai simpangan mencapai $10^6h$ atau menghasilkan nilai yang tidak hingga (\textit{non-finite}).
+        Pengujian kestabilan memakai $N_x=100$ dan $r=0{,}80$; $1{,}00$; $1{,}05$. 
+        Simulasi dijalankan hingga sekitar $2L/c$, profil diamati pada $L/(2c)$ dan $L/c$, dan amplitudo maksimum $M^n=\max_i|y_i^n|$ dipantau pada setiap langkah. 
+        Simulasi dihentikan bila $M^n\geq10^6h$ atau nilai tidak hingga.
 
     \subsection{Pengujian Konvergensi Numerik}
 
-        Konvergensi metode diuji menggunakan profil awal berbentuk sinus yang memiliki solusi analitik
+        Konvergensi diuji dengan profil sinus yang memiliki solusi analitik
         \begin{equation}
-            y_{\mathrm{eksak}}(x,t) = h\sin\left(\frac{\pi x}{L}\right) \cos\left(\frac{\pi c t}{L}\right).
+            y_{\mathrm{eksak}}(x,t) = h\sin\left(\frac{\pi x}{L}\right) \cos\left(\frac{\pi c t}{L}\right),
             \label{eq:analytical-solution}
         \end{equation}
-        Profil ini memenuhi kondisi batas tetap dan kondisi kecepatan awal nol. 
-        Simulasi dilakukan dengan faktor Courant $r=0{,}80$ serta variasi jumlah interval $N_x=50$, $100$, dan $200$. 
-        Perbandingan dilakukan pada waktu fisik yang sama, yaitu
+        yang memenuhi kondisi batas dan kecepatan awal nol. 
+        Simulasi memakai $r=0{,}80$ dan $N_x=50$, $100$, $200$, dibandingkan pada waktu fisik yang sama
         \begin{equation}
             t^*=\frac{0{,}8L}{c}.
         \end{equation}
-        Pemilihan waktu tersebut memungkinkan evaluasi dilakukan tepat pada langkah waktu ke-$N_x$ untuk setiap ukuran grid yang digunakan.
-
-        Galat solusi dihitung menggunakan \textit{Root Mean Square Error} (RMSE),
+        Dengan $r=0{,}8$, waktu ini dicapai tepat pada langkah ke-$N_x$ untuk setiap grid. 
+        Waktu $0{,}6L/c$ memerlukan $0{,}75N_x$ langkah, yang bukan bilangan bulat untuk $N_x=50$ ($37{,}5$ langkah), sehingga tidak dipakai.
+        Galat dihitung dengan RMSE seluruh titik grid,
         \begin{equation}
-            E_{N_x}. = \sqrt{ \frac{1}{N_x+1} \sum_{i=0}^{N_x} \left[ y_i^{\mathrm{num}}(t^*) - y_{\mathrm{eksak}}(x_i,t^*)\right]^2},
+            E_{N_x} = \sqrt{ \frac{1}{N_x+1} \sum_{i=0}^{N_x} \left[ y_i^{\mathrm{num}}(t^*) - y_{\mathrm{eksak}}(x_i,t^*)\right]^2},
             \label{eq:rmse}
         \end{equation}
-        dengan $y_i^{\mathrm{num}}$ merupakan solusi numerik.
-        Orde konvergensi dihitung melalui perbandingan galat pada dua ukuran grid yang berurutan,
+        dan orde konvergensi teramati
         \begin{equation}
             p = \frac{ \ln(E_{N_x}/E_{2N_x}) }{\ln 2}.
             \label{eq:convergence-order}
@@ -414,97 +455,60 @@
 
     \subsection{Diskretisasi Persamaan Gelombang Teredam}
 
-        Untuk menganalisis pengaruh redaman, persamaan gelombang teredam pada Persamaan~\eqref{eq:damped-wave-equation} didiskretisasi menggunakan pendekatan beda pusat yang sama. 
-        Turunan pertama terhadap waktu didekati dengan
-        \begin{equation}
-            \frac{\partial y}{\partial t} \approx \frac{y_i^{n+1}-y_i^{n-1}}{2\Delta t}.
-        \end{equation}
-        Dengan mendefinisikan
-        \begin{equation}
-            q=\frac{\gamma\Delta t}{2},
-        \end{equation}
-        skema numerik gelombang teredam diperoleh sebagai
+        Untuk Persamaan~\eqref{eq:damped-wave-equation}, $y_t$ didekati dengan beda pusat $(y_i^{n+1}-y_i^{n-1})/(2\Delta t)$. 
+        Dengan mengalikan seluruh persamaan dengan $\Delta t^2$ dan mendefinisikan $q=\gamma\Delta t/2$, diperoleh pembaruan eksplisit
         \begin{equation}
             (1+q)y_i^{n+1} = 2y_i^n +r^2 \left( y_{i+1}^n-2y_i^n+y_{i-1}^n \right) -(1-q)y_i^{n-1}.
             \label{eq:fd-damped}
         \end{equation}
-
-        Apabila $\gamma=0$, maka $q=0$ dan Persamaan~\eqref{eq:fd-damped} kembali menjadi skema persamaan gelombang tanpa redaman. 
-        Kondisi awal kecepatan nol juga menghasilkan persamaan inisialisasi gan Persamaan~\eqref{eq:first-time-step}.
-
-        Pengaruh redaman diamati melalui perbandingan dua kondisi, yaitu $\gamma=0$ dan $\gamma=15\,\mathrm{s}^{-1}$.
-        Kedua simulasi menggunakan $N_x=100$, $r=0{,}80$, dan durasi simulasi sebesar $0{,}2\,\mathrm{s}$.
+        Untuk $\gamma=0$, $q=0$ dan Persamaan~\eqref{eq:fd-damped} kembali menjadi Persamaan~\eqref{eq:fd-wave}. 
+        Untuk $g=0$, langkah pertama identik dengan Persamaan~\eqref{eq:first-time-step} (Lampiran~\ref{app:first-step}). 
+        Dua kondisi dibandingkan, $\gamma=0$ dan $\gamma=15\,\mathrm{s}^{-1}$, dengan $N_x=100$, $r=0{,}80$, dan durasi $0{,}2\,\mathrm{s}$.
 
     \subsection{Perhitungan Energi Sistem}
 
-        Energi mekanik kontinu pada senar didefinisikan sebagai jumlah energi kinetik dan energi potensial,
+        Energi mekanik kontinu adalah
         \begin{equation}
-            E(t)= \frac{\mu}{2} \int_0^L \left(\frac{\partial y}{\partial t}\right)^2 dx + \frac{T}{2} \int_0^L \left(\frac{\partial y}{\partial x}\right)^2 dx.
+            E(t)= \frac{\mu}{2} \int_0^L \left(\frac{\partial y}{\partial t}\right)^2 dx + \frac{T}{2} \int_0^L \left(\frac{\partial y}{\partial x}\right)^2 dx,
             \label{eq:continuous-energy}
         \end{equation}
-        Dengan menggunakan persamaan gelombang teredam dan kondisi batas tetap, laju perubahan energi memenuhi
+        dan dengan integrasi parsial serta syarat batas terikat (Lampiran~\ref{app:energy}),
         \begin{equation}
             \frac{dE}{dt} = -\mu\gamma \int_0^L \left(\frac{\partial y}{\partial t}\right)^2 dx \leq 0.
             \label{eq:energy-dissipation}
         \end{equation}
+        Jadi energi tidak bertambah untuk $\gamma\geq0$: konstan bila $\gamma=0$ dan berkurang bila $\gamma>0$.
 
-        Persamaan~\eqref{eq:energy-dissipation} menunjukkan bahwa energi sistem tidak bertambah untuk $\gamma\geq0$.
-        Pada kondisi tanpa redaman, energi kontinu bersifat konstan, sedangkan pada kondisi dengan redaman energi berkurang terhadap waktu.
-
-        Dalam perhitungan numerik, kecepatan transversal didekati menggunakan beda pusat terhadap waktu,
+        Secara numerik, kecepatan didekati dengan beda pusat $v_i^n=(y_i^{n+1}-y_i^{n-1})/(2\Delta t)$, dengan $v_i^0=0$ pada waktu awal dan beda mundur pada waktu akhir. 
+        Gradien ruang memakai beda maju pada tiap interval grid, energi kinetik memakai aturan trapesium, dan energi potensial dijumlahkan pada seluruh interval:
         \begin{equation}
-            v_i^n= \frac{y_i^{n+1}-y_i^{n-1}}{2\Delta t}.
-        \end{equation}
-        Untuk waktu awal digunakan kondisi $v_i^0=0$, sedangkan pada waktu akhir digunakan beda mundur.
-        Turunan ruang dihitung menggunakan beda maju,
-        \begin{equation}
-            \left(\frac{\partial y}{\partial x}\right)_i^n
-            \approx
-            \frac{y_{i+1}^n-y_i^n}{\Delta x}.
-        \end{equation}
-        Energi kinetik dihitung menggunakan integrasi trapesium, sedangkan energi potensial dihitung dengan penjumlahan kontribusi setiap interval grid. 
-        Dengan demikian, pendekatan energi diskret dinyatakan sebagai
-        \begin{equation}
-            E_{\mathrm{num}}^n = \frac{\mu}{2} \operatorname{Trapz}_x\left[(v_i^n)^2\right] + \frac{T}{2}\Delta x \sum_{i=0}^{N_x-1} \left( \frac{y_{i+1}^n-y_i^n}{\Delta x} \right)^2.
+            E_{\mathrm{num}}^n = \frac{\mu}{2} \operatorname{Trapz}_x\left[(v_i^n)^2\right] + \frac{T}{2}\Delta x \sum_{i=0}^{N_x-1} \left( \frac{y_{i+1}^n-y_i^n}{\Delta x} \right)^2,
             \label{eq:discrete-energy}
         \end{equation}
-
-        Untuk membandingkan perubahan energi terhadap waktu, digunakan energi ternormalisasi
+        dan energi dinormalisasi sebagai
         \begin{equation}
             \widehat{E}(t_n) = \frac{E_{\mathrm{num}}^n}{E_{\mathrm{num}}^0}.
             \label{eq:normalized-energy}
         \end{equation}
-        Konvergensi perhitungan energi diuji pada kondisi tanpa redaman menggunakan variasi $N_x=50$, $100$, dan $200$, dengan faktor Courant $r=0{,}80$ dan
-        durasi simulasi $0{,}2\,\mathrm{s}$. 
-        Penyimpangan energi ternormalisasi terhadap nilai awal dievaluasi menggunakan simpangan maksimum dan RMSE terhadap waktu, sehingga pengaruh ukuran grid terhadap akurasi perhitungan energi dapat dianalisis.
+        Konvergensi energi diuji tanpa redaman dengan $N_x=50$, $100$, $200$, $r=0{,}80$, dan durasi $0{,}2\,\mathrm{s}$ melalui simpangan maksimum dan RMSE $\widehat{E}$ terhadap nilai awal.
 
     \subsection{Implementasi Komputasi}
 
-        Seluruh simulasi numerik diimplementasikan menggunakan bahasa pemrograman Julia versi $1.13.3$. 
-        Paket yang digunakan meliputi FFTW versi $1.10.0$ untuk transformasi
-        Fourier, Plots versi $1.41.7$ untuk visualisasi hasil, dan WAV versi $1.2.0$ untuk pembacaan rekaman audio.
-        Pustaka standar Statistics dan Printf juga digunakan dalam pengolahan data dan penyajian hasil.
-
-        Kode program disusun dalam beberapa berkas terpisah berdasarkan tahapan analisis, meliputi pengolahan audio, estimasi parameter fisis, simulasi gelombang, pengujian kestabilan, pengujian konvergensi, dan analisis energi.
-        Hasil komputasi disimpan dalam format CSV, sedangkan grafik dan animasi disimpan dalam format PNG dan GIF.
-        Lingkungan komputasi didefinisikan melalui berkas \texttt{Project.toml} dan \texttt{Manifest.toml} untuk menjaga konsistensi versi paket yang digunakan.
+        Simulasi diimplementasikan dalam Julia $1.13.3$ dengan paket FFTW $1.10.0$, Plots $1.41.7$, dan WAV $1.2.0$ serta pustaka standar Statistics dan Printf. 
+        Kode disusun dalam berkas terpisah (pengolahan audio, estimasi parameter, simulasi, kestabilan, konvergensi, energi) dan seluruhnya dijalankan melalui \texttt{run\_all.jl} setelah mengaktifkan lingkungan dari \texttt{Project.toml} dan \texttt{Manifest.toml}. 
+        Hasil disimpan sebagai CSV, PNG, dan GIF di folder \texttt{results/}.
 
 \section{Hasil dan Pembahasan}
 \label{sec:hasil-pembahasan}
 
 \subsection{Pengujian Kestabilan CFL}
 
-Pengujian kestabilan dilakukan menggunakan jumlah interval
-ruang $N_x=100$ dengan tiga variasi faktor Courant, yaitu
-$r=0{,}80$, $r=1{,}00$, dan $r=1{,}05$. Panjang domain
-dan parameter fisis dibuat tetap sehingga variasi langkah
-waktu ditentukan oleh perubahan nilai faktor Courant.
-Ringkasan parameter dan hasil simulasi ditampilkan pada
-Tabel~\ref{tab:cfl-results}.
+Pengujian dilakukan dengan $N_x=100$ dan tiga nilai $r$ pada parameter fisis yang sama, sehingga variasi $r$ hanya mengubah $\Delta t$. 
+Parameter dan hasil ditunjukkan pada Tabel~\ref{tab:cfl-results}.
 
 \begin{table}[htbp]
     \centering
-    \caption{Hasil pengujian kestabilan untuk berbagai faktor Courant.}
+    \caption{Hasil pengujian kestabilan untuk berbagai faktor Courant ($N_x=100$).}
     \label{tab:cfl-results}
     \begin{tabular}{ccccc}
         \hline
@@ -524,53 +528,32 @@ Tabel~\ref{tab:cfl-results}.
     \end{tabular}
 \end{table}
 
-Pada $r=0{,}80$ dan $r=1{,}00$, simulasi dapat
-diselesaikan hingga waktu sekitar $2L/c$ tanpa menunjukkan
-pertumbuhan amplitudo yang tidak terkendali. Amplitudo
-maksimum tetap berada di sekitar amplitudo awal,
-yaitu $10^{-3}\,\mathrm{m}$. Hasil ini sesuai dengan
-syarat kestabilan $r\leq1$ pada skema yang digunakan.
-
-Sebaliknya, pada $r=1{,}05$, amplitudo solusi meningkat
-secara signifikan sehingga simulasi dihentikan setelah
-35 langkah waktu. Waktu penghentian tercatat sekitar
-$5{,}59\times10^{-4}\,\mathrm{s}$, sebelum mencapai
-waktu pengamatan $L/(2c)$ maupun $L/c$. Amplitudo pada
-langkah penghentian mencapai sekitar
-$1{,}522\times10^3\,\mathrm{m}$, melampaui ambang
-penghentian sebesar $10^6h=10^3\,\mathrm{m}$.
-Nilai tersebut merupakan hasil pemeriksaan setelah
-pembaruan langkah waktu sehingga dapat sedikit melampaui
-ambang yang ditentukan.
-
-Perkembangan amplitudo maksimum selama simulasi
-ditunjukkan pada Gambar~\ref{fig:cfl-amplitude}.
-Hasil tersebut memperlihatkan perbedaan yang jelas antara
-solusi stabil dan solusi tidak stabil ketika faktor
-Courant melampaui batas kestabilan.
+Pada $r=0{,}80$ dan $r=1{,}00$, simulasi selesai hingga sekitar $2L/c$ dan amplitudo maksimum tetap di sekitar $10^{-3}\,\mathrm{m}$, sesuai syarat $r\leq1$. 
+Pada $r=1{,}05$, amplitudo tumbuh cepat sehingga simulasi dihentikan setelah 35 langkah pada $t\approx5{,}59\times10^{-4}\,\mathrm{s}$, sebelum mencapai $L/(2c)$ maupun $L/c$. 
+Amplitudo pada langkah penghentian sekitar $1{,}522\times10^3\,\mathrm{m}$, sedikit melampaui ambang $10^6h=10^3\,\mathrm{m}$ karena pemeriksaan dilakukan setelah pembaruan langkah. 
+Pertumbuhan ini adalah ketidakstabilan skema, bukan sekadar \textit{overflow}: tidak ada nilai tak hingga yang muncul, dan simulasi dihentikan oleh ambang amplitudo. 
+Faktor $|G|_{\max}\approx1{,}88$ per langkah adalah batas atas teoretis ($\approx4\times10^9$ setelah 35 langkah); pertumbuhan teramati lebih kecil ($\approx1{,}5\times10^6$ terhadap $h$), yang wajar karena komponen awal mode paling tidak stabil jauh lebih kecil daripada $h$. 
+Perkembangan $M^n$ ditunjukkan pada Gambar~\ref{fig:cfl-amplitude}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/cfl_max_amplitude.png}
-    \caption{Perkembangan amplitudo maksimum terhadap waktu
-    untuk variasi faktor Courant.}
+    \caption{Amplitudo maksimum $M^n=\max_i|y_i^n|$ terhadap waktu untuk $r=0{,}8$; $1{,}0$; $1{,}05$ ($N_x=100$, $h=10^{-3}\,\mathrm{m}$). Kurva $r=0{,}8$ dan $r=1{,}0$ saling berimpit; kurva $r=1{,}05$ berhenti pada $5{,}59\times10^{-4}\,\mathrm{s}$.}
     \label{fig:cfl-amplitude}
 \end{figure}
 
-Perbandingan profil gelombang pada waktu fisik yang sama
-ditampilkan pada Gambar~\ref{fig:cfl-profile-half}
-dan Gambar~\ref{fig:cfl-profile-full}. Kedua gambar
-memperlihatkan hasil untuk kasus stabil. Kasus
-$r=1{,}05$ tidak ditampilkan karena simulasi telah
-dihentikan sebelum mencapai waktu pengamatan.
+Profil gelombang pada waktu fisik yang sama dibandingkan pada Gambar~\ref{fig:cfl-profile-half} ($t=L/(2c)=7{,}61\times10^{-4}\,\mathrm{s}$) dan Gambar~\ref{fig:cfl-profile-full} ($t=L/c=1{,}522\times10^{-3}\,\mathrm{s}$). 
+Waktu $L/c$ dicapai tepat pada langkah ke-100 ($r=1$) dan ke-125 ($r=0{,}8$), dan $L/(2c)$ pada langkah ke-50 ($r=1$). 
+Untuk $r=0{,}8$, $L/(2c)$ bersesuaian dengan langkah ke-62,5 sehingga tidak berada pada grid waktu.
+Profil pada $L/(2c)$ untuk $r=0{,}8$ diperoleh dengan interpolasi linear dalam waktu antara langkah ke-62 dan ke-63.
+Kasus $r=1{,}05$ tidak ditampilkan karena simulasi berhenti sebelum waktu tersebut.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/cfl_profile_L_2c.png}
-    \caption{Perbandingan profil gelombang pada waktu
-    $t=L/(2c)$ untuk kasus stabil.}
+    \caption{Profil gelombang pada $t=L/(2c)$ untuk $r=0{,}8$ dan $r=1{,}0$ ($N_x=100$, $c=432{,}31\,\mathrm{m/s}$, $h=10^{-3}\,\mathrm{m}$).}
     \label{fig:cfl-profile-half}
 \end{figure}
 
@@ -578,42 +561,23 @@ dihentikan sebelum mencapai waktu pengamatan.
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/cfl_profile_L_c.png}
-    \caption{Perbandingan profil gelombang pada waktu
-    $t=L/c$ untuk kasus stabil.}
+    \caption{Profil gelombang pada $t=L/c$ untuk $r=0{,}8$ dan $r=1{,}0$ (parameter sama dengan Gambar~\ref{fig:cfl-profile-half}).}
     \label{fig:cfl-profile-full}
 \end{figure}
 
-Hasil pengujian menunjukkan bahwa pemilihan langkah
-waktu memiliki pengaruh langsung terhadap kestabilan
-solusi numerik. Selain kestabilan, faktor Courant juga
-memengaruhi dispersi numerik. Untuk $r=1$, skema beda
-hingga yang digunakan memiliki relasi dispersi yang
-sesuai dengan gelombang kontinu pada mode yang
-terwakili grid. Sementara itu, untuk $r=0{,}80$,
-perbedaan kecepatan fase numerik terhadap solusi kontinu
-dapat menyebabkan perubahan bentuk profil gelombang
-selama perambatan.
+Untuk $r=1$, skema mereproduksi solusi eksak pada titik grid sehingga tidak ada riak; profil tetap berupa segitiga dengan kink tajam. 
+Untuk $r=0{,}8$, Persamaan~\eqref{eq:phase-error} menunjukkan bahwa komponen berbilangan gelombang tinggi merambat lebih lambat. 
+Profil segitiga memiliki kink pada $x_p$ sehingga spektrumnya lebar; komponen tinggi tertinggal dan muncul sebagai riak kecil di sekitar kink pada Gambar~\ref{fig:cfl-profile-half} dan~\ref{fig:cfl-profile-full}. 
+Perlu dibedakan: \textit{dispersi} adalah galat fase ($|G|=1$, kecepatan fase bergantung $k$); \textit{disipasi} adalah peluruhan amplitudo ($|G|<1$), yang tidak ada pada skema ini untuk $r\leq1$; \textit{ketidakstabilan} adalah $|G|>1$ untuk sebagian $k$ ($r>1$); dan \textit{overflow} adalah akibat komputasi bila pertumbuhan tak terbatas melewati rentang bilangan. 
+Dengan $\Delta x$ tetap, memperkecil $\Delta t$ ($r<1$) tidak meningkatkan akurasi; $r=1$ justru paling akurat. Kesimpulan ini hanya berlaku untuk skema dan grid ruang yang diuji.
 
 \subsection{Pengujian Konvergensi Solusi Gelombang}
 
-Pengujian konvergensi dilakukan dengan membandingkan
-solusi numerik terhadap solusi analitik berbentuk
-sinus pada Persamaan~\eqref{eq:analytical-solution}.
-Simulasi menggunakan faktor Courant $r=0{,}80$ dengan
-variasi jumlah interval $N_x=50$, $100$, dan $200$.
-Perbandingan dilakukan pada waktu fisik yang sama,
-yaitu $t^*=0{,}8L/c$.
-
-Waktu tersebut dipilih karena dapat dicapai tepat pada
-langkah waktu ke-$N_x$ untuk setiap ukuran grid yang
-digunakan. Dengan demikian, perbandingan galat tidak
-dipengaruhi oleh perbedaan pembulatan jumlah langkah
-waktu. Hasil perhitungan galat ditampilkan pada
-Tabel~\ref{tab:convergence-results}.
+Hasil perbandingan dengan solusi analitik pada $t^*=0{,}8L/c$ ditunjukkan pada Tabel~\ref{tab:convergence-results}.
 
 \begin{table}[htbp]
     \centering
-    \caption{Hasil pengujian konvergensi solusi gelombang.}
+    \caption{Hasil pengujian konvergensi solusi gelombang ($r=0{,}8$, $t^*=0{,}8L/c$).}
     \label{tab:convergence-results}
     \begin{tabular}{ccccc}
         \hline
@@ -635,38 +599,21 @@ Tabel~\ref{tab:convergence-results}.
     \end{tabular}
 \end{table}
 
-Berdasarkan tabel tersebut, nilai RMSE mengalami
-penurunan ketika jumlah interval grid diperbesar.
-Ketika $N_x$ dinaikkan dari 50 menjadi 100, galat
-berkurang dari sekitar $6{,}13\times10^{-8}\,\mathrm{m}$
-menjadi $1{,}54\times10^{-8}\,\mathrm{m}$. Peningkatan
-jumlah interval menjadi 200 kembali menurunkan galat
-hingga sekitar $3{,}86\times10^{-9}\,\mathrm{m}$.
-
-Orde konvergensi yang diperoleh dari perbandingan
-galat dua ukuran grid berurutan adalah
-
+RMSE turun dari $6{,}13\times10^{-8}\,\mathrm{m}$ ($N_x=50$) ke $1{,}54\times10^{-8}\,\mathrm{m}$ ($N_x=100$) dan $3{,}86\times10^{-9}\,\mathrm{m}$ ($N_x=200$). 
+Orde teramati dari Persamaan~\eqref{eq:convergence-order} adalah
 \begin{align}
     p_{50\rightarrow100} &= 1{,}9933,\\
-    p_{100\rightarrow200} &= 1{,}9965.
+    p_{100\rightarrow200} &= 1{,}9965,
 \end{align}
-
-Rata-rata orde konvergensi yang diperoleh mendekati
-dua. Hasil tersebut konsisten dengan ketelitian
-orde kedua dari pendekatan beda pusat terhadap
-ruang dan waktu yang digunakan dalam skema numerik.
-
-Perbandingan profil solusi numerik dan analitik
-ditampilkan pada Gambar~\ref{fig:convergence-profile},
-sedangkan penurunan galat terhadap ukuran grid
-ditampilkan pada Gambar~\ref{fig:convergence-error}.
+dengan rata-rata $1{,}995$, sangat dekat dengan dua, sesuai ketelitian orde kedua beda pusat dalam ruang dan waktu pada profil yang mulus. 
+Orde dua tidak dijamin untuk profil segitiga karena kemiringannya tidak kontinu di titik petikan. 
+Perbandingan solusi numerik dan eksak ditunjukkan pada Gambar~\ref{fig:convergence-profile}, dan RMSE terhadap $\Delta x$ pada Gambar~\ref{fig:convergence-error}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/convergence_profile.png}
-    \caption{Perbandingan profil solusi numerik dan
-    solusi analitik pada beberapa ukuran grid.}
+    \caption{Perbandingan solusi numerik dan solusi eksak untuk $N_x=200$ ($r=0{,}8$, $t^*=0{,}8L/c$, $h=10^{-3}\,\mathrm{m}$).}
     \label{fig:convergence-profile}
 \end{figure}
 
@@ -674,69 +621,33 @@ ditampilkan pada Gambar~\ref{fig:convergence-error}.
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/convergence_error.png}
-    \caption{Perubahan RMSE terhadap jumlah interval grid
-    pada pengujian konvergensi.}
+    \caption{RMSE terhadap $\Delta x$ (sumbu logaritmik) untuk $N_x=50$, $100$, $200$ ($r=0{,}8$).}
     \label{fig:convergence-error}
 \end{figure}
 
 \subsection{Pengaruh Redaman terhadap Evolusi Gelombang}
 
-Pengaruh redaman dianalisis dengan membandingkan
-dua kondisi, yaitu tanpa redaman ($\gamma=0$)
-dan dengan redaman $\gamma=15\,\mathrm{s}^{-1}$.
-Kedua simulasi menggunakan jumlah interval
-$N_x=100$, faktor Courant $r=0{,}80$, dan
-durasi simulasi sekitar $0{,}2\,\mathrm{s}$.
-Langkah waktu yang digunakan adalah
-$1{,}2177\times10^{-5}\,\mathrm{s}$ dengan
-jumlah langkah waktu sebanyak 16426.
-
-Profil gelombang pada kondisi tanpa redaman
-memperlihatkan osilasi yang tetap berlangsung
-selama simulasi. Sebaliknya, pada kondisi dengan
-redaman, amplitudo gelombang berkurang terhadap
-waktu. Perbandingan profil gelombang tersebut
-ditampilkan pada Gambar~\ref{fig:damped-profile}.
+Kondisi $\gamma=0$ dan $\gamma=15\,\mathrm{s}^{-1}$ dibandingkan dengan $N_x=100$, $r=0{,}80$, $\Delta t=1{,}2177\times10^{-5}\,\mathrm{s}$, dan durasi $0{,}2\,\mathrm{s}$ (16426 langkah). 
+Tanpa redaman, osilasi bertahan selama simulasi; dengan redaman, amplitudo berkurang terhadap waktu (Gambar~\ref{fig:damped-profile}). 
+Animasi \texttt{damped\_comparison.gif} disertakan sebagai keluaran pendukung dan memperlihatkan peluruhan amplitudo yang sama.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/damped_profile.png}
-    \caption{Perbandingan profil gelombang pada kondisi
-    tanpa redaman dan dengan redaman.}
+    \caption{Profil gelombang pada $t=0{,}1\,\mathrm{s}$ untuk $\gamma=0$ dan $\gamma=15\,\mathrm{s}^{-1}$ ($N_x=100$, $r=0{,}8$, $h=10^{-3}\,\mathrm{m}$).}
     \label{fig:damped-profile}
 \end{figure}
 
-Perubahan profil gelombang juga divisualisasikan
-melalui animasi hasil simulasi. Berkas animasi
-\texttt{damped\_comparison.gif} disertakan sebagai
-keluaran komputasi pendukung. Visualisasi tersebut
-memperlihatkan bahwa penambahan suku redaman
-mengurangi amplitudo osilasi seiring bertambahnya
-waktu simulasi.
-
 \subsection{Analisis Energi Sistem}
 
-Perubahan energi sistem dianalisis dengan menggunakan
-energi ternormalisasi terhadap energi awal,
-$\widehat{E}(t)=E(t)/E(0)$. Hasil perhitungan
-menunjukkan bahwa energi pada kondisi tanpa redaman
-mengalami fluktuasi kecil di sekitar nilai awal.
-Pada akhir simulasi, rasio energi terhadap energi awal
-adalah sekitar $0{,}99699$, dengan nilai minimum
-sekitar $0{,}99323$.
-
-Pada kondisi dengan redaman, energi mengalami
-penurunan yang lebih besar. Rasio energi pada akhir
-simulasi mencapai sekitar $0{,}04966$, yang berarti
-energi numerik tersisa sekitar $4{,}97\%$ dari
-energi awal. Perbandingan hasil perhitungan energi
-ditampilkan pada Gambar~\ref{fig:damped-energy}.
+Energi ternormalisasi $\widehat{E}(t)=E(t)/E(0)$ untuk $\gamma=0$ berfluktuasi kecil di sekitar nilai awal: nilai minimum $0{,}99323$ dan nilai pada akhir simulasi sekitar $0{,}997$ (Tabel~\ref{tab:damped-energy}). 
+Energi kontinu seharusnya konstan, sehingga fluktuasi ini adalah galat penaksir diskret dan tidak dapat diinterpretasikan sebagai redaman fisis. 
+Untuk $\gamma=15\,\mathrm{s}^{-1}$, $\widehat{E}$ pada akhir simulasi adalah $0{,}04966$ (Gambar~\ref{fig:damped-energy}).
 
 \begin{table}[htbp]
     \centering
-    \caption{Perbandingan energi numerik pada kondisi
-    tanpa redaman dan dengan redaman.}
+    \caption{Perbandingan energi numerik tanpa dan dengan redaman ($N_x=100$, $r=0{,}8$, $0{,}2\,\mathrm{s}$). Nilai joule mengikuti $T$ dari asumsi massa sehingga hanya $\widehat{E}$ yang bermakna.}
     \label{tab:damped-energy}
     \begin{tabular}{cccc}
         \hline
@@ -758,44 +669,22 @@ ditampilkan pada Gambar~\ref{fig:damped-energy}.
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/damped_energy.png}
-    \caption{Perubahan energi ternormalisasi terhadap
-    waktu untuk beberapa nilai koefisien redaman.}
+    \caption{Energi ternormalisasi $E(t)/E(0)$ terhadap waktu untuk $\gamma=0$ dan $\gamma=15\,\mathrm{s}^{-1}$ ($N_x=100$, $r=0{,}8$).}
     \label{fig:damped-energy}
 \end{figure}
 
-Pada kondisi $\gamma=0$, persamaan energi kontinu
-menyatakan bahwa energi mekanik seharusnya konstan.
-Fluktuasi kecil yang diperoleh dari perhitungan numerik
-menunjukkan adanya penyimpangan akibat pendekatan
-diskret pada turunan dan integrasi energi. Oleh sebab
-itu, perubahan energi pada kasus ini tidak dapat
-langsung diinterpretasikan sebagai redaman fisis.
-
-Sebaliknya, penurunan energi yang besar pada
-$\gamma=15\,\mathrm{s}^{-1}$ sesuai dengan keberadaan
-suku disipatif pada persamaan gelombang teredam.
-Hasil tersebut menunjukkan bahwa redaman memindahkan
-energi mekanik keluar dari sistem yang dimodelkan,
-sehingga amplitudo gelombang dan energi total
-berkurang terhadap waktu.
+Hasil teredam dapat diperiksa terhadap teori. 
+Untuk mode dengan $\omega_n>\gamma/2$ (di sini $\omega_1\approx2\times10^3\,\mathrm{s^{-1}}\gg\gamma/2$), energi meluruh rata-rata sebagai $e^{-\gamma t}$, sehingga pada $t\approx0{,}2\,\mathrm{s}$ diperkirakan $\widehat{E}\approx e^{-3}=0{,}0498$. 
+Hasil numerik $0{,}04966$ berbeda sekitar $0{,}3\%$ dari prediksi ini, sehingga konsisten dengan Persamaan~\eqref{eq:energy-dissipation}.
 
 \subsection{Konvergensi Perhitungan Energi}
 
-Konvergensi perhitungan energi diuji pada kondisi
-tanpa redaman dengan membandingkan tiga ukuran grid,
-yaitu $N_x=50$, $100$, dan $200$. Faktor Courant
-dipertahankan sebesar $r=0{,}80$ dan durasi simulasi
-sebesar $0{,}2\,\mathrm{s}$. Penyimpangan energi
-dianalisis melalui simpangan maksimum dan RMSE
-energi ternormalisasi terhadap nilai awal.
-
-Hasil pengujian ditampilkan pada
-Tabel~\ref{tab:energy-convergence}.
+Hasil uji konvergensi energi tanpa redaman ditunjukkan pada Tabel~\ref{tab:energy-convergence}.
 
 \begin{table}[htbp]
     \centering
     \caption{Hasil pengujian konvergensi perhitungan energi
-    pada kondisi tanpa redaman.}
+    tanpa redaman ($r=0{,}8$, $0{,}2\,\mathrm{s}$).}
     \label{tab:energy-convergence}
     \begin{tabular}{cccc}
         \hline
@@ -811,45 +700,26 @@ Tabel~\ref{tab:energy-convergence}.
     \end{tabular}
 \end{table}
 
-Simpangan maksimum dan RMSE mengalami penurunan
-secara konsisten ketika ukuran grid diperhalus.
-Nilai RMSE berkurang dari sekitar $1{,}01\times10^{-2}$
-pada $N_x=50$ menjadi $2{,}50\times10^{-3}$ pada
-$N_x=200$. Hasil ini menunjukkan bahwa penyimpangan
-perhitungan energi terhadap nilai awal semakin kecil
-ketika resolusi grid ditingkatkan.
-
-Nilai energi pada akhir simulasi tidak menunjukkan
-penurunan yang monoton terhadap ukuran grid. Hal ini
-menunjukkan bahwa evaluasi konvergensi energi tidak
-cukup dilakukan hanya dengan membandingkan nilai
-energi pada satu waktu akhir. Penggunaan simpangan
-maksimum dan RMSE selama keseluruhan simulasi
-memberikan gambaran yang lebih menyeluruh terhadap
-perubahan energi numerik.
-
-Simpangan maksimum dan RMSE energi ternormalisasi
-terhadap ukuran grid ditampilkan pada
-Gambar~\ref{fig:energy-convergence}. Sementara itu,
-evolusi energi ternormalisasi terhadap waktu untuk
-beberapa ukuran grid ditampilkan pada
-Gambar~\ref{fig:energy-grid-comparison}.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.5\textwidth]
-    {../results/figures/energy_convergence.png}
-    \caption{Simpangan maksimum energi ternormalisasi
-    terhadap ukuran grid pada kondisi tanpa redaman.}
-    \label{fig:energy-convergence}
-\end{figure}
+Simpangan maksimum dan RMSE menurun konsisten ketika grid diperhalus, sehingga penyimpangan energi diskret mengecil dengan resolusi. 
+Orde teramati dari simpangan maksimum adalah $1{,}13$ dan $1{,}02$, dan dari RMSE $1{,}006$ dan $1{,}003$ (untuk $50\rightarrow100$ dan $100\rightarrow200$), yaitu orde satu, bukan dua. 
+Hal ini konsisten dengan beda maju orde pertama untuk gradien ruang, sehingga penurunan ini mencerminkan galat penaksir energi, bukan galat skema pada profil mulus. 
+Nilai akhir $\widehat{E}(t_{\mathrm{akhir}})$ tidak monoton terhadap ukuran grid karena $\widehat{E}$ berfluktuasi cepat terhadap waktu (Gambar~\ref{fig:energy-grid-comparison}); karena itu evaluasi dilakukan dengan simpangan maksimum dan RMSE, bukan satu waktu akhir. 
+Nilai $\widehat{E}(t_{\mathrm{akhir}})$ untuk $N_x=100$ pada Tabel~\ref{tab:damped-energy} ($0{,}99699$) dan Tabel~\ref{tab:energy-convergence} ($0{,}99492$) berbeda karena waktu evaluasinya tidak sama. Tabel~\ref{tab:damped-energy}
+memakai langkah terakhir simulasi ($n=16426$,
+$t=16426\,\Delta t=0{,}200012\,\mathrm{s}$), sedangkan
+Tabel~\ref{tab:energy-convergence} mengevaluasi energi tepat pada
+$t=0{,}2\,\mathrm{s}$ dengan interpolasi linear antara
+$t_{16425}=0{,}19999939\,\mathrm{s}$ dan
+$t_{16426}=0{,}20001157\,\mathrm{s}$. Selisih waktunya hanya satu
+langkah ($\approx1{,}2\times10^{-5}\,\mathrm{s}$), tetapi $\widehat{E}$
+berfluktuasi cepat sehingga nilainya berbeda sekitar $2\times10^{-3}$;
+perbedaan ini bukan kesalahan perhitungan.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\textwidth]
     {../results/figures/energy_grid_comparison.png}
-    \caption{Evolusi energi ternormalisasi terhadap waktu
-    untuk beberapa ukuran grid pada kondisi tanpa redaman.}
+    \caption{Energi ternormalisasi terhadap waktu untuk $N_x=50$, $100$, $200$ pada kondisi tanpa redaman ($r=0{,}8$).}
     \label{fig:energy-grid-comparison}
 \end{figure}
 
@@ -858,188 +728,133 @@ Gambar~\ref{fig:energy-grid-comparison}.
 
 \subsection{Interpretasi Estimasi Parameter Fisis}
 
-Estimasi parameter fisis senar diperoleh dengan
-menggabungkan hasil pengukuran panjang senar dan
-frekuensi fundamental dengan asumsi massa senar.
-Nilai cepat rambat gelombang dan tegangan yang diperoleh
-bergantung langsung pada ketepatan parameter tersebut.
-Khususnya, massa senar sebesar $22{,}5\,\mathrm{g}$
-tidak diperoleh melalui pengukuran langsung, melainkan
-diasumsikan berada pada rentang $22$--$23\,\mathrm{g}$.
+Cepat rambat $c=2Lf_1$ hanya bergantung pada $L$ dan $f_1$, sehingga hasil numerik (stabilitas, konvergensi, peluruhan dalam waktu) tidak bergantung pada asumsi massa. 
+Sebaliknya, $\mu=m/L$ dan $T=4mLf_1^2$ bergantung langsung dan linear pada $m$ yang diasumsikan. 
+Tabel~\ref{tab:sensitivity} menunjukkan sensitivitasnya: perubahan $m$ sebesar $1\,\mathrm{g}$ mengubah $T$ sekitar $284\,\mathrm{N}$.
 
-Dengan mensubstitusikan $\mu=m/L$ ke dalam persamaan
-tegangan, diperoleh
+\begin{table}[htbp]
+    \centering
+    \caption{Sensitivitas $\mu$ dan $T$ terhadap massa asumsi $m$ ($L=0{,}658\,\mathrm{m}$, $f_1=328{,}501\,\mathrm{Hz}$).}
+    \label{tab:sensitivity}
+    \begin{tabular}{ccc}
+        \hline
+        $m$ (g) & $\mu$ (kg/m) & $T$ (N) \\
+        \hline
+        22{,}0 & 0{,}03343 & 6249 \\
+        22{,}5 & 0{,}03419 & 6391 \\
+        23{,}0 & 0{,}03495 & 6533 \\
+        \hline
+        0{,}26 (pembanding) & $4{,}0\times10^{-4}$ & $\approx75$ \\
+        \hline
+    \end{tabular}
+\end{table}
 
-\begin{equation}
-    T=4mLf_1^2.
-\end{equation}
+Baris pembanding menunjukkan massa yang diperlukan agar $T$ berorde puluhan newton, yaitu orde tegangan yang lazim pada senar gitar baja tipis; ini adalah nilai ilustrasi, bukan hasil pengukuran. 
+Nilai $T\approx6{,}4\times10^3\,\mathrm{N}$ jauh lebih besar daripada orde tersebut, yang mengindikasikan bahwa massa asumsi $22{,}5\,\mathrm{g}$ terlalu besar untuk senar ini. 
+Karena itu $\mu$ dan $T$ pada Tabel~\ref{tab:physical-parameters} dilaporkan sebagai konsekuensi asumsi, bukan sebagai nilai fisis senar. 
+Pengaruhnya terbatas pada $\mu$, $T$, dan energi dalam joule ($E\propto\mu$ untuk $c$ tetap); seluruh besaran ternormalisasi dan hasil numerik tidak berubah.
 
-Hubungan tersebut menunjukkan bahwa estimasi tegangan
-bergantung secara linear terhadap massa dan panjang
-senar, serta secara kuadratik terhadap frekuensi
-fundamental. Oleh karena itu, ketidakpastian massa
-memberikan kontribusi dominan terhadap ketidakpastian
-estimasi tegangan dalam perhitungan ini.
-
-Nilai tegangan yang diperoleh, yaitu sekitar
-$6{,}391\times10^3\,\mathrm{N}$, perlu ditafsirkan
-secara hati-hati karena bergantung pada asumsi massa
-yang digunakan. Dengan demikian, nilai tersebut
-merupakan estimasi berdasarkan parameter masukan
-yang diasumsikan, bukan hasil pengukuran tegangan
-senar secara langsung. Pengukuran massa senar dan
-tegangan aktual diperlukan untuk memperoleh estimasi
-yang lebih representatif.
+Kecocokan frekuensi simulasi dengan $f_1$ hanya merupakan pemeriksaan konsistensi, karena $c$ diturunkan dari $f_1$. 
+Validasi independen memerlukan pengukuran yang tidak memakai $f_1$ untuk menentukan parameter. 
+Dua rancangan diusulkan (belum dilaksanakan dalam kajian ini): (i) mengukur $\mu$ langsung (menimbang senar sejenis dengan neraca presisi atau mengukur diameter dengan mikrometer) dan $T$ dengan alat ukur tegangan senar, lalu membandingkan $\sqrt{T/\mu}$ dengan $2Lf_1$; (ii) menekan senar pada beberapa fret untuk memvariasikan $L$, mengukur $f_1$ tiap $L$, dan menguji apakah $f_1$ linear terhadap $1/L$ dengan gradien $c/2$ yang sesuai dengan hasil senar bebas (dengan catatan tegangan berubah sedikit saat senar ditekan).
 
 \subsection{Keterbatasan Pengukuran Eksperimen}
 
-Analisis frekuensi dilakukan menggunakan rekaman
-suara yang diperoleh dari mikrofon. Dengan demikian,
-sinyal yang dianalisis merupakan tekanan akustik
-yang dihasilkan oleh sistem senar dan badan gitar,
-bukan pengukuran langsung terhadap simpangan
-transversal senar. Karakteristik badan gitar,
-ruangan, serta posisi mikrofon dapat memengaruhi
-spektrum frekuensi yang terekam.
-
-Selain itu, resolusi frekuensi nominal FFT yang
-digunakan adalah $1\,\mathrm{Hz}$. Interpolasi
-puncak spektrum menghasilkan estimasi frekuensi
-dengan angka desimal, tetapi angka tersebut tidak
-secara langsung menunjukkan ketelitian absolut
-pengukuran. Variasi antarpetikan hanya memberikan
-informasi mengenai konsistensi hasil estimasi dari
-pengulangan eksperimen.
-
-Spektrum juga menunjukkan komponen frekuensi di
-sekitar $110\,\mathrm{Hz}$ yang tidak mengikuti
-pola harmonik fundamental senar yang dianalisis.
-Karena sumber komponen tersebut belum dapat
-diidentifikasi secara pasti, komponen tersebut
-tidak digunakan dalam penentuan frekuensi
-fundamental.
+Mikrofon mengukur tekanan akustik yang dihasilkan sistem senar dan badan gitar, bukan simpangan transversal senar. 
+Karakteristik badan gitar, ruangan, dan posisi mikrofon ($\approx10\,\mathrm{cm}$ dari senar) memengaruhi amplitudo relatif harmonik, tetapi frekuensi puncak tetap mencerminkan getaran senar. 
+Resolusi nominal FFT $1\,\mathrm{Hz}$ membatasi ketelitian absolut $f_1$ (Bagian~\ref{sec:estimasi-parameter}), dan posisi petikan hanya ditentukan dalam $\pm0{,}1\,\mathrm{cm}$ pada $\approx0{,}2L$. 
+Puncak $\approx110\,\mathrm{Hz}$ dan $\approx220\,\mathrm{Hz}$ tidak dipakai dalam penentuan $f_1$ dan sumbernya belum diketahui.
 
 \subsection{Keterbatasan Model Gelombang}
 
-Model gelombang yang digunakan mengasumsikan senar
-homogen dengan massa jenis linear dan tegangan
-konstan, serta kedua ujung senar terikat sempurna.
-Pendekatan ini mengabaikan beberapa karakteristik
-senar nyata, seperti kekakuan lentur, ketidakseragaman
-material, dan interaksi mekanik antara senar dengan
-badan gitar. Karakteristik tersebut dapat memengaruhi
-frekuensi harmonik dan respons akustik instrumen
-\cite{FletcherRossing1998}.
+Model mengasumsikan senar homogen dengan $\mu$ dan $T$ konstan serta kedua ujung terikat sempurna \cite{FletcherRossing1998}. 
+Senar nyata berbeda dalam beberapa hal: (i) kekakuan lentur menggeser harmonik ke atas ($f_n=nf_1\sqrt{1+Bn^2}$), meskipun tidak terdeteksi pada resolusi ini; (ii) energi hilang melalui gesekan udara, gesekan internal, dan transfer energi ke jembatan dan badan gitar, dengan harmonik tinggi biasanya meluruh lebih cepat sehingga \textit{timbre} berubah seiring waktu; (iii) badan gitar membentuk spektrum yang terekam; dan (iv) ujung tidak terikat sempurna. 
+Satu koefisien $\gamma=15\,\mathrm{s}^{-1}$ tidak mencakup semua mekanisme tersebut. 
+Nilai $\gamma$ dan $h$ adalah nilai simulasi yang tidak diukur, sehingga hasil teredam tidak merupakan identifikasi kuantitatif redaman senar sebenarnya.
 
-Model gelombang tanpa redaman juga mengasumsikan
-bahwa energi mekanik sistem tetap konstan.
-Untuk merepresentasikan kehilangan energi, model
-diperluas dengan menambahkan suku redaman linear
-yang sebanding dengan kecepatan transversal.
-Meskipun demikian, penggunaan satu koefisien redaman
-konstan belum mencakup seluruh mekanisme disipasi
-energi pada senar gitar yang sebenarnya.
+\subsection{Keterbatasan Metode Numerik dan Perhitungan Energi}
 
-Nilai $\gamma=15\,\mathrm{s}^{-1}$ dalam simulasi
-digunakan sebagai parameter pembanding untuk
-mengamati pengaruh redaman. Nilai tersebut tidak
-diperoleh melalui pengukuran eksperimen, sehingga
-hasil simulasi teredam tidak dimaksudkan sebagai
-identifikasi kuantitatif redaman aktual senar gitar.
-
-\subsection{Keterbatasan Metode Numerik dan
-Perhitungan Energi}
-
-Metode beda hingga eksplisit yang digunakan memiliki
-batas kestabilan yang ditentukan oleh faktor Courant.
-Hasil pengujian menunjukkan bahwa solusi stabil
-ketika $r\leq1$, sedangkan penggunaan $r=1{,}05$
-menghasilkan pertumbuhan amplitudo yang tidak
-terkendali. Selain kestabilan, diskretisasi ruang
-dan waktu juga dapat menimbulkan dispersi numerik
-yang memengaruhi bentuk gelombang selama perambatan.
-
-Pengujian konvergensi dengan profil sinus menunjukkan
-bahwa skema numerik memiliki orde konvergensi
-mendekati dua. Namun, hasil tersebut diperoleh dari
-profil awal yang mulus dan memiliki solusi analitik.
-Profil awal segitiga yang digunakan pada simulasi
-senar memiliki perubahan kemiringan yang tidak
-kontinu pada posisi petikan. Oleh karena itu,
-keberadaan komponen gelombang berfrekuensi tinggi
-dapat membuat respons numeriknya berbeda dari
-pengujian konvergensi dengan profil sinus.
-
-Perhitungan energi juga menggunakan pendekatan
-diskret terhadap kecepatan, gradien ruang, dan
-integrasi spasial. Hal ini menyebabkan energi
-numerik pada kondisi tanpa redaman tidak selalu
-konstan, meskipun energi kontinu secara teoritis
-tetap terjaga. Pengujian dengan beberapa ukuran
-grid menunjukkan bahwa penyimpangan energi
-berkurang ketika resolusi grid ditingkatkan.
-Dengan demikian, perubahan energi pada simulasi
-numerik perlu diinterpretasikan dengan
-mempertimbangkan galat diskretisasi yang digunakan.
+Skema eksplisit stabil bersyarat $r\leq1$ (hasil uji: stabil untuk $r=0{,}8$ dan $1{,}0$, tidak stabil untuk $r=1{,}05$) dan memiliki dispersi numerik untuk $r<1$. 
+Orde dua yang teramati berasal dari profil sinus yang mulus; profil segitiga memiliki kink pada $x_p$ sehingga respons numeriknya dapat berbeda, dan hal ini tidak diuji secara kuantitatif di sini. 
+Energi diskret berorde satu terhadap $\Delta x$ sehingga fluktuasi $\widehat{E}$ pada $\gamma=0$ tidak boleh dibaca sebagai redaman fisis; hasil dibatasi pada skema, grid, dan penaksir energi yang diuji.
 
 \section{Kesimpulan}
 \label{sec:kesimpulan}
 
-Berdasarkan pengukuran eksperimen dan simulasi numerik
-yang telah dilakukan, diperoleh beberapa kesimpulan
-sebagai berikut.
-
 \begin{enumerate}
-    \item Analisis spektrum audio dari tiga petikan senar
-    menghasilkan estimasi frekuensi fundamental rata-rata
-    sebesar $328{,}501\,\mathrm{Hz}$. Dengan panjang senar
-    sebesar $0{,}658\,\mathrm{m}$ dan asumsi massa
-    $22{,}5\,\mathrm{g}$, diperoleh estimasi massa jenis
-    linear sebesar $0{,}03419\,\mathrm{kg/m}$,
-    cepat rambat gelombang sebesar $432{,}31\,\mathrm{m/s}$,
-    dan tegangan sebesar $6{,}391\times10^3\,\mathrm{N}$.
-    Nilai parameter tersebut bergantung pada asumsi massa
-    senar yang digunakan.
+    \item Dari tiga petikan diperoleh $f_1=328{,}501\,\mathrm{Hz}$ (simpangan baku antarpetikan $0{,}023\,\mathrm{Hz}$, resolusi $1\,\mathrm{Hz}$), dengan enam harmonik pertama sesuai pola kelipatan bulat. Dengan $L=0{,}658\,\mathrm{m}$ diperoleh $c=(432{,}3\pm0{,}8)\,\mathrm{m/s}$. Dengan asumsi massa $22{,}5\,\mathrm{g}$ diperoleh $\mu=0{,}03419\,\mathrm{kg/m}$ dan $T=6{,}391\times10^3\,\mathrm{N}$; kedua nilai ini bergantung pada asumsi, tidak divalidasi independen, dan $T$ jauh di atas orde tegangan senar gitar sehingga tidak boleh ditafsirkan sebagai nilai fisis.
 
-    \item Metode beda hingga eksplisit berhasil
-    diimplementasikan untuk menyelesaikan persamaan
-    gelombang satu dimensi. Pengujian kestabilan
-    menunjukkan bahwa simulasi stabil untuk
-    $r=0{,}80$ dan $r=1{,}00$, sedangkan
-    $r=1{,}05$ menghasilkan pertumbuhan amplitudo
-    yang tidak terkendali. Pengujian konvergensi
-    menggunakan solusi analitik menghasilkan orde
-    konvergensi rata-rata sekitar $1{,}995$, yang
-    mendekati orde kedua sesuai dengan skema numerik
-    yang digunakan.
+    \item Metode beda hingga eksplisit stabil untuk $r=0{,}80$ dan $r=1{,}00$ dan tidak stabil untuk $r=1{,}05$ (simulasi dihentikan setelah 35 langkah). Orde konvergensi terhadap solusi analitik adalah $1{,}995$, mendekati dua. Pada $r=1$ tidak ada galat fase, sedangkan pada $r=0{,}8$ muncul dispersi numerik berupa riak di sekitar kink.
 
-    \item Penambahan suku redaman dengan
-    $\gamma=15\,\mathrm{s}^{-1}$ menghasilkan penurunan
-    amplitudo dan energi gelombang yang signifikan.
-    Pada akhir simulasi, energi ternormalisasi tersisa
-    sekitar $4{,}97\%$ dari energi awal, sedangkan pada
-    kondisi tanpa redaman nilainya sekitar $99{,}70\%$.
-    Pengujian konvergensi energi tanpa redaman juga
-    menunjukkan bahwa penyimpangan energi numerik
-    berkurang ketika ukuran grid diperhalus.
+    \item Redaman $\gamma=15\,\mathrm{s}^{-1}$ menurunkan energi ternormalisasi menjadi $4{,}97\%$ pada $t\approx0{,}2\,\mathrm{s}$ (prediksi $e^{-3}=4{,}98\%$), dibandingkan $99{,}70\%$ tanpa redaman. Penyimpangan energi tanpa redaman berorde satu terhadap $\Delta x$ dan merupakan galat penaksir, bukan redaman fisis.
 \end{enumerate}
-
-Secara keseluruhan, hasil pekerjaan menunjukkan bahwa
-metode beda hingga dapat digunakan untuk mempelajari
-evolusi gelombang pada senar melalui pengujian
-kestabilan, konvergensi, dan pengaruh redaman.
-Namun, interpretasi parameter fisis dan hasil simulasi
-tetap perlu mempertimbangkan asumsi serta keterbatasan
-model yang digunakan.
 
 \section*{Pernyataan Penggunaan AI}
 
-
+Penulis menggunakan AI sebagai alat bantu dalam diskusi model matematis, pengembangan dan pemeriksaan kode program Julia, analisis hasil simulasi, serta penyusunan dan penyuntingan laporan.
+Penulis bertanggung jawab untuk memeriksa dan memvalidasi persamaan, kode program, data, serta interpretasi hasil yang disajikan dalam laporan.
 
 \section*{Daftar Pustaka}
 
 \bibliography{reference}
 
+% ------------------------------------------------------------------
+% LAMPIRAN (di luar batas halaman utama)
+% ------------------------------------------------------------------
+\appendix
+\renewcommand{\thesection}{\Alph{section}}
 
+\section{Bukti syarat CFL}
+\label{app:cfl}
+
+Substitusi $y_i^n=G^ne^{\mathrm{i}kx_i}$ ke Persamaan~\eqref{eq:fd-wave} memberikan $G-2+G^{-1}=-4r^2s^2$ dengan $s=\sin(k\Delta x/2)$, sehingga
+\begin{equation}
+    G^2-2\beta G+1=0,\qquad \beta=1-2r^2s^2.
+\end{equation}
+Akar-akarnya $G_\pm=\beta\pm\sqrt{\beta^2-1}$ memenuhi $G_+G_-=1$. 
+Jika $|\beta|\leq1$, akarnya kompleks sekawan, $G_\pm=\beta\pm\mathrm{i}\sqrt{1-\beta^2}$, dengan $|G_\pm|=1$: skema stabil dan tidak berdisipasi. 
+Jika $|\beta|>1$, akarnya real dengan hasil kali 1 sehingga salah satunya memiliki $|G|>1$ dengan nilai $|G|_{\max}=|\beta|+\sqrt{\beta^2-1}$: skema tidak stabil. 
+Karena $s^2\in[0,1]$, selalu $\beta\leq1$, dan $\beta\geq-1$ untuk semua $k$ bila dan hanya bila $1-2r^2\geq-1$, yaitu $r\leq1$ (kasus terburuk $k\Delta x=\pi$). 
+Untuk $r=1{,}05$: $\beta=1-2(1{,}05)^2=-1{,}205$ dan $|G|_{\max}=1{,}205+\sqrt{1{,}205^2-1}\approx1{,}88$.
+
+Ekspansi untuk Persamaan~\eqref{eq:phase-error}: dengan $a=k\Delta x/2$, Persamaan~\eqref{eq:numerical-dispersion} memberi $\omega_{\mathrm{num}}\Delta t/2=\arcsin(r\sin a)$. 
+Untuk $a\ll1$, $r\sin a\approx ra-ra^3/6$ dan $\arcsin z\approx z+z^3/6$, sehingga $\omega_{\mathrm{num}}\Delta t/2\approx ra\left[1-(1-r^2)a^2/6\right]$. 
+Dengan $ra=ck\Delta t/2$ diperoleh $\omega_{\mathrm{num}}\approx ck\left[1-(1-r^2)(k\Delta x)^2/24\right]$.
+
+\section{Langkah waktu pertama dengan kecepatan awal $g(x)$ dan redaman}
+\label{app:first-step}
+
+Ekspansi Taylor orde dua:
+\begin{equation}
+    y_i^1=y_i^0+\Delta t\,g_i+\frac{\Delta t^2}{2}\left.y_{tt}\right|_{t=0}.
+\end{equation}
+Dari Persamaan~\eqref{eq:damped-wave-equation}, $y_{tt}=c^2y_{xx}-\gamma y_t$, sehingga pada $t=0$ berlaku $y_{tt}=c^2y_{xx}-\gamma g$. 
+Dengan $c^2y_{xx}\Delta t^2\approx r^2\left(y_{i+1}^0-2y_i^0+y_{i-1}^0\right)$ dan $q=\gamma\Delta t/2$:
+\begin{equation}
+    y_i^1=y_i^0+\Delta t(1-q)\,g_i+\frac{r^2}{2}\left(y_{i+1}^0-2y_i^0+y_{i-1}^0\right).
+\end{equation}
+Untuk $g=0$ suku kedua hilang dan hasilnya identik dengan Persamaan~\eqref{eq:first-time-step}, dengan atau tanpa redaman.
+
+\section{Bukti laju perubahan energi}
+\label{app:energy}
+
+Dari Persamaan~\eqref{eq:continuous-energy},
+\begin{equation}
+    \frac{dE}{dt}=\int_0^L\left(\mu\,y_ty_{tt}+T\,y_xy_{xt}\right)dx.
+\end{equation}
+Integrasi parsial pada suku kedua:
+\begin{equation}
+    T\int_0^Ly_xy_{xt}\,dx=T\Big[y_xy_t\Big]_0^L-T\int_0^Ly_ty_{xx}\,dx.
+\end{equation}
+Karena ujung terikat, $y(0,t)=y(L,t)=0$ sehingga $y_t(0,t)=y_t(L,t)=0$ dan suku batas hilang. 
+Maka
+\begin{equation}
+    \frac{dE}{dt}=\int_0^Ly_t\left(\mu\,y_{tt}-T\,y_{xx}\right)dx.
+\end{equation}
+Dari Persamaan~\eqref{eq:damped-wave-equation} dengan $c^2=T/\mu$, $\mu y_{tt}-Ty_{xx}=-\mu\gamma y_t$, sehingga
+\begin{equation}
+    \frac{dE}{dt}=-\mu\gamma\int_0^Ly_t^2\,dx\leq0\quad(\gamma\geq0),
+\end{equation}
+dan $dE/dt=0$ untuk $\gamma=0$.
 
 \end{document}
